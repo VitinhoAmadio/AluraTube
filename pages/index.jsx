@@ -1,15 +1,17 @@
-import config from "../config.json"
-import styled from "styled-components"
-import { CSSReset } from "../src/components/CSSReset"
-import Menu from "../src/components/Menu"
-import { StyledTimeline } from "../src/components/Timeline"
+import React from "react";
+import config from "../config.json";
+import styled from "styled-components";
+import { CSSReset } from "../src/components/CSSReset";
+import Menu from "../src/components/Menu";
+import { StyledTimeline } from "../src/components/Timeline";
+
 
 function HomePage() {
   const estilosDaHomePage = {
     // backgroundColor: "red"
-  }
+  };
 
-  // console.log(config.playlists);
+  const [valorDoFiltro, setValorDoFiltro] = React.useState("");
 
   return (
     <>
@@ -19,18 +21,30 @@ function HomePage() {
           display: "flex",
           flexDirection: "column",
           flex: 1,
+          // backgroundColor: "red",
         }}
       >
-        <Menu />
+        {/* Prop Drilling */}
+        <Menu
+          valorDoFiltro={valorDoFiltro}
+          setValorDoFiltro={setValorDoFiltro}
+        />
         <Header />
-        <Timeline playlists={config.playlists}>Conteúdo</Timeline>
+        <Timeline searchValue={valorDoFiltro} playlists={config.playlists}>
+          Conteúdo
+        </Timeline>
       </div>
     </>
-  )
+  );
 }
-
-export default HomePage
-
+export default HomePage;
+// function Menu() {
+//     return (
+//         <div>
+//             Menu
+//         </div>
+//     )
+// }
 const StyledHeader = styled.div`
   img {
     width: 80px;
@@ -38,18 +52,23 @@ const StyledHeader = styled.div`
     border-radius: 50%;
   }
   .user-info {
-    margin-top: 50px;
     display: flex;
     align-items: center;
     width: 100%;
     padding: 16px 32px;
     gap: 16px;
   }
-`
+`;
+const StyledBanner = styled.div`
+  background-color: blue;
+  background-image: url(${({ bg }) => bg});
+  /* background-image: url(${config.bg}); mesma coisa q o de cima */ 
+  height: 230px;
+`;
 function Header() {
   return (
     <StyledHeader>
-      {/* <img src="banner" /> */}
+      <StyledBanner bg={config.bg} />
       <section className="user-info">
         <img src={`https://github.com/${config.github}.png`} />
         <div>
@@ -58,36 +77,44 @@ function Header() {
         </div>
       </section>
     </StyledHeader>
-  )
+  );
 }
 
-function Timeline(propriedades) {
+function Timeline({ searchValue, ...propriedades }) {
   // console.log("Dentro do componente", propriedades.playlists);
-  const playlistNames = Object.keys(propriedades.playlists)
+  const playlistNames = Object.keys(propriedades.playlists);
   // Statement
   // Retorno por expressão
   return (
     <StyledTimeline>
-      {playlistNames.map((playlistName) => {
-        const videos = propriedades.playlists[playlistName]
-        console.log(playlistName)
-        console.log(videos)
-        return (
-          <section>
-            <h2>{playlistName}</h2>
-            <div>
-              {videos.map((video) => {
+            {playlistNames.map((playlistName) => {
+                const videos = propriedades.playlists[playlistName];
+                // console.log(playlistName);
+                // console.log(videos);
                 return (
-                  <a href={video.url}>
-                    <img src={video.thumb} />
-                    <span>{video.title}</span>
-                  </a>
+                    <section key={playlistName}>
+                        <h2>{playlistName}</h2>
+                        <div>
+                            {videos
+                                .filter((video) => {
+                                    const titleNormalized = video.title.toLowerCase();
+                                    const searchValueNormalized = searchValue.toLowerCase();
+                                    return titleNormalized.includes(searchValueNormalized)
+                                })
+                                .map((video) => {
+                                    return (
+                                        <a key={video.url} href={video.url}>
+                                            <img src={video.thumb} />
+                                            <span>
+                                                {video.title}
+                                            </span>
+                                        </a>
+                                    )
+                                })}
+                        </div>
+                    </section>
                 )
-              })}
-            </div>
-          </section>
-        )
-      })}
-    </StyledTimeline>
-  )
+            })}
+        </StyledTimeline>
+  );
 }
